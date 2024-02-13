@@ -1,64 +1,74 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import CardList from "./components/card-list/card-list.component";
 import SearchBox from "./components/search-box/search-box.component";
 import "./App.css";
 
-class App extends Component {
-  constructor() {
-    super();
+// function based component
+const App = () => {
 
-    this.state = {
-      monsters: [],
-      searchField: "",
-    };
-  }
+  console.log("rendered");
+  
+  const [searchField, setSearchField] = useState("");
+  const [title, setTitle] = useState('Rakshasss');
+  const [monsters, setMonsters] = useState([]);
+  const [filteredMonsters, setFilterMonsters] = useState(monsters);
 
-  // componentDidMount method, basically it loads up the stuff we need at the beginning
-  componentDidMount() {
+  // to fetch API in the beginning
+  useEffect(() => {
+    
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((response) => response.json())
-      .then((users) =>
-        this.setState(() => {
-          return { monsters: users };
-        })
-      );
-  }
+      .then((users) => {setMonsters(users)});
+     
+  }, []);
 
-  // optimization 1: initializing a function to the input change, for the purpose of optimization, as keeping this whole anonymous function inside
-  // 'onChange' is just gonna make the function again n again, but now whenever that event gets triggered, it'll only have referrence
-  // to this 'onSearchChange' function and will be executed quickly
+  console.log("the users:", monsters);
 
-  onSearchChange = (e) => {
-    const searchField = e.target.value.toLocaleLowerCase();
-
-    this.setState(() => {
-      return { searchField };
-    });
-  };
-
-  render() {
-    //optimization 2: destructuring the properties, so that we don't have to write this. again n again in front of the properties field
-    const { monsters, searchField } = this.state;
-    const { onSearchChange } = this;
-
-    //  doing the filtering outside the 'onChange' function so that our original 'monsters' array won't get affected
-    const filteredMonsters = monsters.filter((monster) => {
+  // to not assign the value everytime the whole component renders
+  useEffect(() => {
+    // filtering the initial array of monsters
+    const newFilteredMonsters = monsters.filter((monster) => {
       return monster.name.toLocaleLowerCase().includes(searchField);
     });
 
-    return (
-      <div className="App">
+    setFilterMonsters(newFilteredMonsters);
+  }, [monsters, searchField]);
+
+  // event binded function
+  const onSearchChange = (e) => {
+    const searchFieldString = e.target.value.toLocaleLowerCase();
+    setSearchField(searchFieldString);
+  };
+
+  // function for title change
+  const onTitleChange = (e) => {
+    const searchFieldString = e.target.value.toLocaleLowerCase();
+    setTitle(searchFieldString);
+  };
+
+  return (
+    <>
         
-        <h1 className="app-title">Raakchasss...</h1>
-        <SearchBox
-          className="monster-search-box"
-          onChangeHandler={onSearchChange}
-          placeholder="search monsters"
-        />
-        <CardList monsters={filteredMonsters} />
-      </div>
-    );
-  }
-}
+    <div className="App">
+      <h1 className="app-title">{title} Functional</h1>
+      <SearchBox
+        className="monster-search-box"
+        onChangeHandler={onSearchChange}
+        placeholder="search monsters"
+      />
+      <br />
+
+      {/* the title box  */}
+      {/* <SearchBox
+        className="monster-search-box"
+        onChangeHandler={onTitleChange}
+        placeholder="change title"
+      /> */}
+      <CardList monsters={filteredMonsters} />
+    </div>
+    </>
+  );
+};
 
 export default App;
+
